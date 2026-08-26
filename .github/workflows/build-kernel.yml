@@ -45,6 +45,9 @@ jobs:
           _noccache="true"
           _strip="true"
           _kernel_localversion="-daemon-llano"
+          _misc_adds="false"
+          _prompt_config="false"
+          _force_all_threads="true"
           _kernel_workfolder="/home/builder/linux-tkg/workfolder"
           CFG
           chown -R builder:builder /home/builder/linux-tkg

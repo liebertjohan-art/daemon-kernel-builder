@@ -16,7 +16,7 @@ jobs:
       - name: Update System & Install Dependencies
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm git bc bison flex libelf openssl pahole kmod cpio sudo diffutils patch tar xz zstd python rsync wget base-devel inetutils
+          pacman -S --noconfirm git bc bison flex libelf openssl pahole kmod cpio sudo diffutils patch tar xz zstd python rsync wget base-devel inetutils xmlto kmod
 
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -27,8 +27,10 @@ jobs:
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
           su builder -c "git clone --depth=1 https://github.com/Frogging-Family/linux-tkg.git /home/builder/linux-tkg"
 
-      - name: Configure Linux-TKG for AMD Llano K10 + BORE
+      - name: Configure Linux-TKG for AMD Llano K10 + BORE (Fully Non-Interactive)
         run: |
+          # Copy the complete default customization.cfg and override target settings
+          cp /home/builder/linux-tkg/customization.cfg /home/builder/linux-tkg/customization.cfg.bak || true
           cat << 'CFG' > /home/builder/linux-tkg/customization.cfg
           _distro="Arch"
           _version=""
@@ -48,13 +50,23 @@ jobs:
           _misc_adds="false"
           _prompt_config="false"
           _force_all_threads="true"
+          _numa="false"
+          _zenify="false"
+          _user_patches="false"
+          _irqbalance="false"
+          _acs_override="false"
+          _ftracedisable="true"
+          _werror="false"
+          _tickless="1"
+          _sched_yield_type="0"
+          _lto_mode="none"
           _kernel_workfolder="/home/builder/linux-tkg/workfolder"
           CFG
           chown -R builder:builder /home/builder/linux-tkg
 
-      - name: Build Kernel (linux-tkg automated makepkg)
+      - name: Build Kernel (NONINTERACTIVE makepkg)
         run: |
-          su builder -c "cd /home/builder/linux-tkg && makepkg -s --noconfirm"
+          su builder -c "cd /home/builder/linux-tkg && env NONINTERACTIVE=true makepkg -s --noconfirm"
           cp /home/builder/linux-tkg/*.pkg.tar.zst /__w/daemon-kernel-builder/daemon-kernel-builder/ || true
 
       - name: List Artifacts

@@ -1,0 +1,60 @@
+name: Build Linux Daemon Llano Kernel
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+      options: --privileged
+
+    steps:
+      - name: Update Pacman & Install Build Tools
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm git bc bison flex libelf openssl pahole kmod cpio sudo diffutils patch tar xz zstd
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Non-Root Build User
+        run: |
+          useradd -m builder
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          chown -R builder:builder /__w/daemon-kernel-builder/daemon-kernel-builder
+
+      - name: Build Kernel Package (makepkg)
+        run: |
+          su builder -c "makepkg -s --noconfirm"
+
+      - name: List Generated Artifacts
+        run: |
+          ls -la *.pkg.tar.zst
+
+      - name: Create GitHub Release and Upload Artifacts
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/main')
+        with:
+          tag_name: v6.12.16-daemon-llano
+          name: "Linux Kernel 6.12.16 (BORE + AMD Llano K10 Tuned)"
+          body: |
+            ## 🚀 Custom Kernel Release for Daemon (AMD A4-3330MX)
+            
+            - **Target Architecture**: AMD K10.5 (`-march=amdfam10 -O2`)
+            - **CPU Scheduler**: BORE (Burst-Oriented Response Enhancer) v5.8.1
+            - **Preemption**: Desktop Low-Latency (`CONFIG_PREEMPT=y`)
+            - **Timer Frequency**: 1000 Hz (`CONFIG_HZ_1000=y`)
+            - **ZSWAP**: Pre-configured with LZ4 compression for 3.3 GB RAM
+            
+            ### 💻 1-Click Install on Arch Linux:
+            ```bash
+            sudo pacman -U https://github.com/liebertjohan-art/daemon-kernel-builder/releases/download/v6.12.16-daemon-llano/linux-daemon-llano-6.12.16-1-x86_64.pkg.tar.zst \
+                            https://github.com/liebertjohan-art/daemon-kernel-builder/releases/download/v6.12.16-daemon-llano/linux-daemon-llano-headers-6.12.16-1-x86_64.pkg.tar.zst
+            ```
+          files: "*.pkg.tar.zst"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

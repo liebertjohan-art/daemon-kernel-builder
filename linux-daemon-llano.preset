@@ -1,0 +1,13 @@
+# mkinitcpio preset file for the 'linux-daemon-llano' package
+
+ALL_kver="${pkgver}-daemon-llano"
+ALL_config="/etc/mkinitcpio.conf"
+
+PRESETS=('default' 'fallback')
+
+# default config
+default_image="/boot/initramfs-linux-daemon-llano.img"
+
+# fallback config
+fallback_image="/boot/initramfs-linux-daemon-llano-fallback.img"
+fallback_options="-S autodetect"

@@ -28,7 +28,7 @@ _srcname="linux-${pkgver}"
 
 source=(
   "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${pkgver}.tar.xz"
-  "https://raw.githubusercontent.com/firelzrd/bore-scheduler/main/patches/stable/linux-6.12.10-bore-5.8.1.patch"
+  "git+https://github.com/firelzrd/bore-scheduler.git"
   "config"
   "linux-daemon-llano.preset"
 )
@@ -41,12 +41,23 @@ prepare() {
   echo "-daemon-llano" > localversion.10-pkgname
 
   echo "Applying BORE CPU Scheduler patch..."
-  patch -Np1 -i "${srcdir}/linux-6.12.10-bore-5.8.1.patch" || true
+  # Find matching or latest 6.12 patch from cloned bore-scheduler repository
+  BORE_PATCH=$(find "${srcdir}/bore-scheduler" -name "*6.12*.patch" | head -n 1)
+  if [ -z "$BORE_PATCH" ]; then
+    BORE_PATCH=$(find "${srcdir}/bore-scheduler" -name "*.patch" | head -n 1)
+  fi
+
+  if [ -n "$BORE_PATCH" ]; then
+    echo "Applying patch: $BORE_PATCH"
+    patch -Np1 -i "$BORE_PATCH" || true
+  else
+    echo "Warning: No BORE patch found, continuing with stock CFS/EEVDF"
+  fi
 
   echo "Configuring tailored AMD Llano K10 kernel options..."
   cp "${srcdir}/config" .config
 
-  # Force compiler flags in Makefile
+  # Force compiler optimization flags in Makefile
   sed -i 's/-march=x86-64/-march=amdfam10 -O2/g' Makefile || true
 
   make olddefconfig

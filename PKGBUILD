@@ -2,7 +2,7 @@
 # Kernel: Linux with BORE CPU scheduler, optimized for AMD Llano (K10.5) Dual-Core APUs
 
 pkgbase=linux-daemon-llano
-pkgver=6.12.16
+pkgver=6.12.10
 pkgrel=1
 pkgdesc='Linux Kernel tuned with BORE Scheduler & AMD K10.5 (-march=amdfam10) optimization for Daemon'
 url='https://github.com/liebertjohan-art/daemon-kernel-builder'
@@ -41,8 +41,7 @@ prepare() {
   echo "-daemon-llano" > localversion.10-pkgname
 
   echo "Applying BORE CPU Scheduler patch..."
-  # Find matching or latest 6.12 patch from cloned bore-scheduler repository
-  BORE_PATCH=$(find "${srcdir}/bore-scheduler" -name "*6.12*.patch" | head -n 1)
+  BORE_PATCH=$(find "${srcdir}/bore-scheduler" -name "*6.12.10*.patch" | head -n 1)
   if [ -z "$BORE_PATCH" ]; then
     BORE_PATCH=$(find "${srcdir}/bore-scheduler" -name "*.patch" | head -n 1)
   fi
@@ -50,8 +49,6 @@ prepare() {
   if [ -n "$BORE_PATCH" ]; then
     echo "Applying patch: $BORE_PATCH"
     patch -Np1 -i "$BORE_PATCH" || true
-  else
-    echo "Warning: No BORE patch found, continuing with stock CFS/EEVDF"
   fi
 
   echo "Configuring tailored AMD Llano K10 kernel options..."
@@ -65,7 +62,7 @@ prepare() {
 
 build() {
   cd "${srcdir}/${_srcname}"
-  make all
+  make -j$(nproc) all
 }
 
 package_linux-daemon-llano() {

@@ -16,7 +16,7 @@ jobs:
       - name: Update System & Install Dependencies
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm git bc bison flex libelf openssl pahole kmod cpio sudo diffutils patch tar xz zstd python rsync wget base-devel
+          pacman -S --noconfirm git bc bison flex libelf openssl pahole kmod cpio sudo diffutils patch tar xz zstd python rsync wget base-devel inetutils
 
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
         run: |
           cat << 'CFG' > /home/builder/linux-tkg/customization.cfg
           _distro="Arch"
-          _version="6.12"
+          _version=""
           _cpusched="bore"
           _processor_opt="amdfam10"
           _timer_freq="1000"
@@ -62,8 +62,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: v6.12-daemon-llano-tkg
-          name: "Linux Kernel 6.12 TKG-BORE (AMD Llano -march=amdfam10)"
+          tag_name: v-daemon-llano-tkg
+          name: "Linux Kernel TKG-BORE (AMD Llano -march=amdfam10)"
           body: |
             ## 🚀 Custom TKG-BORE Kernel for Daemon (AMD A4-3330MX)
             
@@ -76,7 +76,7 @@ jobs:
             
             ### 💻 1-Click Install Command on Arch Linux:
             ```bash
-            sudo pacman -U https://github.com/liebertjohan-art/daemon-kernel-builder/releases/download/v6.12-daemon-llano-tkg/linux-daemon-llano-*.pkg.tar.zst
+            sudo pacman -U https://github.com/liebertjohan-art/daemon-kernel-builder/releases/download/v-daemon-llano-tkg/linux-daemon-llano-*.pkg.tar.zst
             ```
           files: "/home/builder/linux-tkg/*.pkg.tar.zst"
         env:

@@ -50,7 +50,7 @@ jobs:
           _misc_adds="false"
           _prompt_config="false"
           _force_all_threads="true"
-          _numa="false"
+          _disable_numa="true"
           _zenify="false"
           _user_patches="false"
           _irqbalance="false"
@@ -66,7 +66,7 @@ jobs:
 
       - name: Build Kernel (NONINTERACTIVE makepkg)
         run: |
-          su builder -c "cd /home/builder/linux-tkg && env NONINTERACTIVE=true makepkg -s --noconfirm"
+          su builder -c "cd /home/builder/linux-tkg && yes '' | env NONINTERACTIVE=true makepkg -s --noconfirm"
           cp /home/builder/linux-tkg/*.pkg.tar.zst /__w/daemon-kernel-builder/daemon-kernel-builder/ || true
 
       - name: List Artifacts
